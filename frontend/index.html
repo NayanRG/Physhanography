@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Security Scanner Tool</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>Security Scanner Dashboard</h1>
+    <p>Analyze files, decode images, and detect phishing links</p>
+  </header>
+
+  <main>
+    <section class="api-section">
+      <h2>🔍 Phishing Detection</h2>
+      <input type="text" id="urlInput" placeholder="Enter URL to check..." />
+      <button onclick="checkPhishing()">Scan URL</button>
+      <div id="phishingResult"></div>
+    </section>
+
+    <section class="api-section">
+      <h2>🖼️ Steganography Decoder</h2>
+      <input type="file" id="imageInput" accept="image/*" />
+      <button onclick="decodeImage()">Decode Image</button>
+      <div id="decodeResult"></div>
+    </section>
+
+    <section class="api-section">
+      <h2>📂 File Scanner</h2>
+      <input type="file" id="fileInput" />
+      <button onclick="scanFile()">Scan File</button>
+      <div id="fileResult"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2026 SecureScan | Built with HTML, CSS & JS</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
