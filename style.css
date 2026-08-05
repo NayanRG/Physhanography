@@ -44,6 +44,32 @@ button:hover {
   to { opacity: 1; transform: translateY(0); }
 }
 
+.result {
+  margin-top: 12px;
+  white-space: pre-wrap;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+  text-align: left;
+}
+
+.result a {
+  color: #00bcd4;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.result a:hover {
+  text-decoration: underline;
+}
+
+input[type="text"] {
+  padding: 8px;
+  border-radius: 5px;
+  border: none;
+  width: 60%;
+  max-width: 300px;
+}
+
 footer {
   margin-top: 40px;
   font-size: 0.9em;

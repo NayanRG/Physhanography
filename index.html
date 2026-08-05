@@ -9,7 +9,7 @@
 <body>
   <header>
     <h1>Security Scanner Dashboard</h1>
-    <p>Analyze files, decode images, and detect phishing links</p>
+    <p>Analyze files, hide/reveal secrets in images, and detect phishing links</p>
   </header>
 
   <main>
@@ -17,21 +17,29 @@
       <h2>🔍 Phishing Detection</h2>
       <input type="text" id="urlInput" placeholder="Enter URL to check..." />
       <button onclick="checkPhishing()">Scan URL</button>
-      <div id="phishingResult"></div>
+      <div id="phishingResult" class="result"></div>
     </section>
 
     <section class="api-section">
-      <h2>🖼️ Steganography Decoder</h2>
+      <h2>🖼️ Steganography — Hide a Message</h2>
+      <input type="file" id="encodeImageInput" accept="image/*" />
+      <input type="text" id="secretMessage" placeholder="Secret message to hide..." />
+      <button onclick="encodeImage()">Hide Message</button>
+      <div id="encodeResult" class="result"></div>
+    </section>
+
+    <section class="api-section">
+      <h2>🕵️ Steganography — Reveal a Message</h2>
       <input type="file" id="imageInput" accept="image/*" />
       <button onclick="decodeImage()">Decode Image</button>
-      <div id="decodeResult"></div>
+      <div id="decodeResult" class="result"></div>
     </section>
 
     <section class="api-section">
       <h2>📂 File Scanner</h2>
       <input type="file" id="fileInput" />
       <button onclick="scanFile()">Scan File</button>
-      <div id="fileResult"></div>
+      <div id="fileResult" class="result"></div>
     </section>
   </main>
 
