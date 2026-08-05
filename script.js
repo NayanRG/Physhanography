@@ -1,10 +1,51 @@
-const API_BASE = ""; // same-origin; set to your backend URL if hosted separately
+// IMPORTANT: index.html is served by Live Server (port 5501), but the API
+// runs as a separate process (uvicorn, default port 8000). They are two
+// different servers -- relative paths like "/api/..." would hit Live Server,
+// not this backend. Point explicitly at wherever `uvicorn main:app` is running.
+const API_BASE = "http://127.0.0.1:8000";
+
+// Safely parse a fetch Response as JSON, with a clear error if the body
+// is empty/HTML/not JSON at all (e.g. wrong port, backend not running,
+// or a proxy/dev-server intercepting the request instead of the API).
+async function safeJson(response) {
+  const text = await response.text();
+  if (!text) {
+    throw new Error(
+      `Empty response from ${response.url} (status ${response.status}). ` +
+      `Is the backend running at ${API_BASE}? (uvicorn main:app --reload --port 8000)`
+    );
+  }
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`Backend did not return JSON (got: "${text.slice(0, 80)}...")`);
+  }
+}
+
+// Ping the backend on page load and show a status banner
+async function checkBackendStatus() {
+  const el = document.getElementById("backendStatus");
+  if (!el) return;
+  try {
+    const res = await fetch(`${API_BASE}/api/health`);
+    const data = await safeJson(res);
+    el.innerText = data.vt_key_configured
+      ? "🟢 Backend connected"
+      : "🟡 Backend connected, but VT_API_KEY is not set in .env";
+    el.className = data.vt_key_configured ? "status ok" : "status warn";
+  } catch (err) {
+    el.innerText = `🔴 Can't reach backend at ${API_BASE} — start it with: uvicorn main:app --reload --port 8000`;
+    el.className = "status error";
+  }
+}
+
+document.addEventListener("DOMContentLoaded", checkBackendStatus);
 
 // Poll VirusTotal analysis until it's done (or we give up)
 async function pollAnalysis(analysisId, resultEl, { attempts = 10, delayMs = 3000 } = {}) {
   for (let i = 0; i < attempts; i++) {
     const res = await fetch(`${API_BASE}/api/analysis/${analysisId}`);
-    const data = await res.json();
+    const data = await safeJson(res);
 
     if (data.status === "completed") {
       const s = data.stats || {};
@@ -41,8 +82,8 @@ async function checkPhishing() {
       method: "POST",
       body: formData, // NOTE: must be form data, not JSON -- matches FastAPI's Form(...) param
     });
-    if (!response.ok) throw new Error((await response.json()).detail || "Request failed");
-    const data = await response.json();
+    const data = await safeJson(response);
+    if (!response.ok) throw new Error(data.detail || "Request failed");
     await pollAnalysis(data.analysis_id, resultEl);
   } catch (err) {
     resultEl.innerText = `Error: ${err.message}`;
@@ -63,8 +104,8 @@ async function scanFile() {
 
   try {
     const response = await fetch(`${API_BASE}/api/scan`, { method: "POST", body: formData });
-    if (!response.ok) throw new Error((await response.json()).detail || "Request failed");
-    const data = await response.json();
+    const data = await safeJson(response);
+    if (!response.ok) throw new Error(data.detail || "Request failed");
     await pollAnalysis(data.analysis_id, resultEl);
   } catch (err) {
     resultEl.innerText = `Error: ${err.message}`;
@@ -85,7 +126,8 @@ async function decodeImage() {
 
   try {
     const response = await fetch(`${API_BASE}/api/decode`, { method: "POST", body: formData });
-    const data = await response.json();
+    const data = await safeJson(response);
+    if (!response.ok) throw new Error(data.detail || "Request failed");
     resultEl.innerText = data.message ? `Hidden message: ${data.message}` : (data.note || "No message found.");
   } catch (err) {
     resultEl.innerText = `Error: ${err.message}`;
@@ -108,7 +150,10 @@ async function encodeImage() {
 
   try {
     const response = await fetch(`${API_BASE}/api/encode`, { method: "POST", body: formData });
-    if (!response.ok) throw new Error((await response.json()).detail || "Request failed");
+    if (!response.ok) {
+      const data = await safeJson(response);
+      throw new Error(data.detail || "Request failed");
+    }
     const blob = await response.blob();
     const downloadUrl = URL.createObjectURL(blob);
 

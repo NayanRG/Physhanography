@@ -1,0 +1,82 @@
+{
+  "info": {
+    "name": "Security Scanner API",
+    "description": "Test the FastAPI backend directly, without the frontend. Run uvicorn first: uvicorn main:app --reload --port 8000",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8000" }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/api/health"
+      }
+    },
+    {
+      "name": "Phishing URL Scan",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/api/phishing",
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            { "key": "url", "value": "https://example.com" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Analysis Result",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/api/analysis/:analysis_id",
+        "variable": [
+          { "key": "analysis_id", "value": "PASTE_ANALYSIS_ID_HERE" }
+        ]
+      }
+    },
+    {
+      "name": "File Scan",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/api/scan",
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            { "key": "file", "type": "file", "src": [] }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Steganography Encode",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/api/encode",
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            { "key": "image", "type": "file", "src": [] },
+            { "key": "message", "type": "text", "value": "hello world" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Steganography Decode",
+      "request": {
+        "method": "POST",
+        "url": "{{base_url}}/api/decode",
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            { "key": "image", "type": "file", "src": [] }
+          ]
+        }
+      }
+    }
+  ]
+}

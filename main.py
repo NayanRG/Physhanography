@@ -41,6 +41,12 @@ def _vt_headers():
     return {"accept": "application/json", "x-apikey": API_KEY}
 
 
+@app.get("/api/health")
+async def health():
+    """Lets the frontend confirm it's actually talking to this backend."""
+    return {"status": "ok", "vt_key_configured": bool(API_KEY)}
+
+
 # --- 1. Phishing / URL Detection ---
 @app.post("/api/phishing")
 async def phishing_scan(url: str = Form(...)):
