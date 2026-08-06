@@ -71,6 +71,7 @@ async def scan_file(file: UploadFile):
     """Upload a file (any type) to VirusTotal for malware scanning.
     Automatically handles files >32MB via VirusTotal's special upload URL.
     """
+    #Auth check + read the file into memory
     headers = _vt_headers()
     content = await file.read()
     size = len(content)
