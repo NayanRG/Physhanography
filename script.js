@@ -74,8 +74,9 @@ async function checkPhishing() {
   }
   resultEl.innerText = "Submitting...";
 
-  const formData = new FormData();
-  formData.append("url", url);
+const formData = new FormData();
+formData.append("url", url);
+const response = await fetch(`${API_BASE}/api/phishing`, { method: "POST", body: formData });
 
   try {
     const response = await fetch(`${API_BASE}/api/phishing`, {

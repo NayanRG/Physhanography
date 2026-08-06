@@ -122,19 +122,24 @@ async def get_analysis(analysis_id: str):
 # --- 4. Steganography: hide a message inside an image (LSB encoding) ---
 @app.post("/api/encode")
 async def encode_image(image: UploadFile, message: str = Form(...)):
+
+    #read the image and gets raw pixel list
     raw = await image.read()
     img = Image.open(io.BytesIO(raw)).convert("RGB")
     pixels = list(img.getdata())
 
+    #Turn the message into a bitstream
     payload = message + STEG_DELIMITER
     bits = "".join(format(ord(c), "08b") for c in payload)
 
-    if len(bits) > len(pixels) * 3:
+    #Capacity check
+    if len(bits) > len(pixels) * 3:     #3 usable bits per pixel (1 per channel). A 100×100 image = 30,000 bits ≈ 3,750 characters max.
         raise HTTPException(
             status_code=400,
             detail="Message too long to hide in this image. Use a larger image or shorter message.",
         )
 
+    #Overwrite the LSB of each channel
     new_pixels = []
     idx = 0
     for r, g, b in pixels:
@@ -146,6 +151,7 @@ async def encode_image(image: UploadFile, message: str = Form(...)):
             b = (b & ~1) | int(bits[idx]); idx += 1
         new_pixels.append((r, g, b))
 
+    #Save as PNG and stream it back
     img.putdata(new_pixels)
     buf = io.BytesIO()
     img.save(buf, format="PNG")  # PNG only -- JPEG compression destroys hidden bits
@@ -161,6 +167,8 @@ async def encode_image(image: UploadFile, message: str = Form(...)):
 # --- 5. Steganography: extract a hidden message from an image ---
 @app.post("/api/decode")
 async def decode_image(image: UploadFile):
+
+    #Pull the LSB out of every channel
     raw = await image.read()
     img = Image.open(io.BytesIO(raw)).convert("RGB")
     pixels = list(img.getdata())
@@ -172,6 +180,7 @@ async def decode_image(image: UploadFile):
         bits.append(str(b & 1))
     bits = "".join(bits)
 
+    #Rebuild characters 8 bits at a time, watching for the delimiter
     chars = []
     message = ""
     for i in range(0, len(bits) - 7, 8):
@@ -180,10 +189,11 @@ async def decode_image(image: UploadFile):
         message = "".join(chars)
         if message.endswith(STEG_DELIMITER):
             return {"message": message[: -len(STEG_DELIMITER)]}
-
+        
+    #Fallback if the delimiter never shows up
     return {"message": None, "note": "No hidden message found in this image."}
 
-
+#runs uvicorn main:app --reload --port 8000
 if __name__ == "__main__":
     import uvicorn
 
