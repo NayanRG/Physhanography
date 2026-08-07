@@ -22,6 +22,10 @@ STEG_DELIMITER = "#####END#####"
 
 app = FastAPI(title="Security Toolkit API")
 
+@app.get("/")
+async def root():
+    return {"message": "API is running successfully!"}
+
 # Allow frontend (HTML/JS) to talk to backend
 app.add_middleware(
     CORSMiddleware,
