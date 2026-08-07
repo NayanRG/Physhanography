@@ -4,47 +4,111 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Physhanography</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header>
-    <h1>Dashboard</h1>
-    <p>Analyze files, hide/reveal secrets in images, and detect phishing links</p>
+
+  <div class="grid-overlay" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="topbar__brand">
+      <span class="dot dot--live" aria-hidden="true"></span>
+      <span class="brand__mark">DASHBOARD</span>
+    </div>
+    <div id="backendStatus" class="status">Connecting to backend…</div>
   </header>
 
-  <main>
-    <section class="api-section">
-      <h2>🔍 Phishing Detection</h2>
-      <input type="text" id="urlInput" placeholder="Enter URL to check..." />
-      <button onclick="checkPhishing()">Scan URL</button>
-      <div id="phishingResult" class="result"></div>
+  <main class="page">
+    <section class="hero">
+      <p class="hero__eyebrow">FIND IT,BEAT IT</p>
+      <h1 class="hero__title">Scan files, trace phishing links,<br />and read what's hidden in an image.</h1>
+      <p class="hero__sub">Four tools, one FastAPI backend. Everything below talks to <code>uvicorn</code> running on your machine.</p>
     </section>
 
-    <section class="api-section">
-      <h2>🖼️ Steganography — Hide a Message</h2>
-      <input type="file" id="encodeImageInput" accept="image/*" />
-      <input type="text" id="secretMessage" placeholder="Secret message to hide..." />
-      <button onclick="encodeImage()">Hide Message</button>
-      <div id="encodeResult" class="result"></div>
-    </section>
+    <div class="panel-grid">
 
-    <section class="api-section">
-      <h2>🕵️ Steganography — Reveal a Message</h2>
-      <input type="file" id="imageInput" accept="image/*" />
-      <button onclick="decodeImage()">Decode Image</button>
-      <div id="decodeResult" class="result"></div>
-    </section>
+      <section class="panel" id="panel-phishing">
+        <div class="panel__head">
+          <span class="panel__icon" aria-hidden="true">◎</span>
+          <div>
+            <h2 class="panel__title">Phishing Detection</h2>
+            <p class="panel__desc">Submit a URL for a VirusTotal reputation check.</p>
+          </div>
+        </div>
+        <div class="panel__body">
+          <label class="field-label" for="urlInput">URL to check</label>
+          <input type="text" id="urlInput" class="text-input" placeholder="https://example.com" autocomplete="off" />
+          <button class="btn" onclick="checkPhishing()">
+            <span>Scan URL</span>
+          </button>
+          <pre id="phishingResult" class="result"></pre>
+        </div>
+      </section>
 
-    <section class="api-section">
-      <h2>📂 File Scanner</h2>
-      <input type="file" id="fileInput" />
-      <button onclick="scanFile()">Scan File</button>
-      <div id="fileResult" class="result"></div>
-    </section>
+      <section class="panel" id="panel-encode">
+        <div class="panel__head">
+          <span class="panel__icon" aria-hidden="true">◫</span>
+          <div>
+            <h2 class="panel__title">Hide a Message</h2>
+            <p class="panel__desc">Encode a secret message into an image using LSB steganography.</p>
+          </div>
+        </div>
+        <div class="panel__body">
+          <label class="field-label" for="encodeImageInput">Carrier image</label>
+          <input type="file" id="encodeImageInput" class="file-input" accept="image/*" />
+          <label class="field-label" for="secretMessage">Secret message</label>
+          <input type="text" id="secretMessage" class="text-input" placeholder="Type the message to hide…" autocomplete="off" />
+          <button class="btn" onclick="encodeImage()">
+            <span>Hide Message</span>
+          </button>
+          <div id="encodeResult" class="result"></div>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-decode">
+        <div class="panel__head">
+          <span class="panel__icon" aria-hidden="true">◬</span>
+          <div>
+            <h2 class="panel__title">Reveal a Message</h2>
+            <p class="panel__desc">Extract a hidden message from a previously encoded image.</p>
+          </div>
+        </div>
+        <div class="panel__body">
+          <label class="field-label" for="imageInput">Encoded image</label>
+          <input type="file" id="imageInput" class="file-input" accept="image/*" />
+          <button class="btn" onclick="decodeImage()">
+            <span>Decode Image</span>
+          </button>
+          <pre id="decodeResult" class="result"></pre>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-scan">
+        <div class="panel__head">
+          <span class="panel__icon" aria-hidden="true">▣</span>
+          <div>
+            <h2 class="panel__title">File Scanner</h2>
+            <p class="panel__desc">Upload any file for a full VirusTotal malware scan.</p>
+          </div>
+        </div>
+        <div class="panel__body">
+          <label class="field-label" for="fileInput">File to scan</label>
+          <input type="file" id="fileInput" class="file-input" />
+          <button class="btn" onclick="scanFile()">
+            <span>Scan File</span>
+          </button>
+          <pre id="fileResult" class="result"></pre>
+        </div>
+      </section>
+
+    </div>
   </main>
 
-  <footer>
-    <p>© 2026 SecureScan | Built with HTML, CSS & JS</p>
+  <footer class="page-footer">
+    <p>© 2026 SecureScan — Built with FastAPI, HTML, CSS &amp; JS</p>
   </footer>
 
   <script src="script.js"></script>
