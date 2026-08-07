@@ -14,7 +14,6 @@ load_dotenv()
 
 API_KEY = os.getenv("VT_API_KEY")
 VT_BASE = "https://www.virustotal.com/api/v3"
-
 # VirusTotal's standard /files endpoint rejects anything over 32MB.
 # Anything bigger needs a special one-time upload URL instead.
 DIRECT_UPLOAD_LIMIT = 32 * 1024 * 1024  # 32 MB
@@ -51,7 +50,7 @@ def _vt_headers():
     if not API_KEY:
         raise HTTPException(
             status_code=500,
-            detail="VT_API_KEY is not set. Add it to your .env file (see .env.example).",
+            detail="VT_API_KEY is not set. Add it to your .env file.",
         )
     return {"accept": "application/json", "x-apikey": API_KEY}
 
@@ -76,10 +75,13 @@ async def phishing_scan(url: str = Form(...)):
         response.raise_for_status()
         data = response.json()
         return {"status": "success", "analysis_id": data["data"]["id"]}
-    except requests.exceptions.RequestException as e:
-        raise HTTPException(status_code=502, detail=str(e))
-
-
+    except requests.exceptions.HTTPError as e:
+        print(e.response.status_code)
+        print(e.response.text)
+        raise HTTPException(
+            status_code=e.response.status_code,
+            detail=e.response.text
+        )
 # --- 2. File Scanner (VirusTotal) ---
 @app.post("/api/scan")
 async def scan_file(file: UploadFile):
