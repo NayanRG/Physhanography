@@ -6,9 +6,10 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse
 from PIL import Image
 
-# Load environment variables from a .env file (see .env.example)
+# Load environment variables from a .env file
 load_dotenv()
 
 API_KEY = os.getenv("VT_API_KEY")
@@ -20,11 +21,21 @@ DIRECT_UPLOAD_LIMIT = 32 * 1024 * 1024  # 32 MB
 
 STEG_DELIMITER = "#####END#####"
 
-app = FastAPI(title="Security Toolkit API")
+
+app = FastAPI()
 
 @app.get("/")
-async def root():
-    return {"message": "API is running successfully!"}
+async def home():
+    return FileResponse("index.html")
+
+@app.get("/style.css")
+async def css():
+    return FileResponse("style.css")
+
+@app.get("/script.js")
+async def js():
+    return FileResponse("script.js")
+
 
 # Allow frontend (HTML/JS) to talk to backend
 app.add_middleware(
