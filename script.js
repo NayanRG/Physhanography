@@ -2,7 +2,7 @@
 // runs as a separate process (uvicorn, default port 8000). They are two
 // different servers -- relative paths like "/api/..." would hit Live Server,
 // not this backend. Point explicitly at wherever `uvicorn main:app` is running.
-const API_BASE = "http://127.0.0.1:8000";
+const API_BASE = "";
 // Safely parse a fetch Response as JSON, with a clear error if the body
 // is empty/HTML/not JSON at all (e.g. wrong port, backend not running,
 // or a proxy/dev-server intercepting the request instead of the API).
