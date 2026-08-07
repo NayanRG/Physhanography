@@ -160,12 +160,26 @@ body {
 
 .hero__title {
   font-family: var(--mono);
-  font-weight: 600;
+  font-weight: 900;
   font-size: clamp(1.6rem, 3.4vw, 2.4rem);
   line-height: 1.28;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.08em;
   margin: 0 0 16px;
-  color: var(--text);
+
+  /* 3D Text Color */
+  color: #00ffcc;
+
+  /* 3D Extrusion + Glow Effect */
+  text-shadow:
+    1px 1px 0 #00d9aa,
+    2px 2px 0 #00b38f,
+    3px 3px 0 #008f73,
+    4px 4px 0 #006b57,
+    5px 5px 0 #004d3e,
+    8px 8px 20px rgba(0, 255, 204, 0.7);
+
+  /* 3D Perspective */
+  transform: perspective(800px) rotateX(15deg);
 }
 
 .hero__sub {
