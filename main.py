@@ -1,7 +1,10 @@
+import base64
+import hashlib
 import io
 import os
 
 import requests
+from cryptography.fernet import Fernet, InvalidToken
 from dotenv import load_dotenv
 from fastapi import FastAPI, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -19,6 +22,13 @@ VT_BASE = "https://www.virustotal.com/api/v3"
 DIRECT_UPLOAD_LIMIT = 32 * 1024 * 1024  # 32 MB
 
 STEG_DELIMITER = "#####END#####"
+
+
+def _derive_fernet_key(passphrase: str) -> bytes:
+    """Turn any user-supplied passphrase into a valid 32-byte urlsafe-base64
+    Fernet key (AES-128-CBC + HMAC under the hood) via SHA-256."""
+    digest = hashlib.sha256(passphrase.encode("utf-8")).digest()
+    return base64.urlsafe_b64encode(digest)
 
 
 app = FastAPI()
@@ -93,6 +103,16 @@ async def scan_file(file: UploadFile):
     content = await file.read()
     size = len(content)
 
+    #Most browsers don't have .eml registered in their MIME database, so
+    #file.content_type arrives as "" or "application/octet-stream". VirusTotal
+    #then receives a blank/unreliable Content-Type and rejects the upload.
+    #Force the correct type by extension so .eml (raw email) files scan
+    #the same way any other file type does.
+    content_type = file.content_type
+    filename = file.filename or ""
+    if filename.lower().endswith(".eml") and not content_type:
+        content_type = "message/rfc822"
+
     try:
         if size <= DIRECT_UPLOAD_LIMIT:
             upload_endpoint = f"{VT_BASE}/files"
@@ -105,7 +125,7 @@ async def scan_file(file: UploadFile):
         response = requests.post(
             upload_endpoint,
             headers=headers,
-            files={"file": (file.filename, content, file.content_type)},
+            files={"file": (file.filename, content, content_type)},
         )
         response.raise_for_status()
         vt_data = response.json()
@@ -139,15 +159,24 @@ async def get_analysis(analysis_id: str):
 
 # --- 4. Steganography: hide a message inside an image (LSB encoding) ---
 @app.post("/api/encode")
-async def encode_image(image: UploadFile, message: str = Form(...)):
+async def encode_image(image: UploadFile, message: str = Form(...), key: str = Form(None)):
 
     #read the image and gets raw pixel list
     raw = await image.read()
     img = Image.open(io.BytesIO(raw)).convert("RGB")
     pixels = list(img.getdata())
 
-    #Turn the message into a bitstream
-    payload = message + STEG_DELIMITER
+    #If a passphrase was supplied, AES-encrypt the message first (Fernet =
+    #AES-128-CBC + HMAC). The resulting token is itself ASCII-safe (urlsafe
+    #base64), so it can be embedded with the exact same bit-writer below.
+    #Without a key, behavior is unchanged -- the plain message is hidden.
+    payload_text = message
+    if key:
+        fernet = Fernet(_derive_fernet_key(key))
+        payload_text = fernet.encrypt(message.encode("utf-8")).decode("ascii")
+
+    #Turn the (possibly encrypted) message into a bitstream
+    payload = payload_text + STEG_DELIMITER
     bits = "".join(format(ord(c), "08b") for c in payload)
 
     #Capacity check
@@ -184,7 +213,7 @@ async def encode_image(image: UploadFile, message: str = Form(...)):
 
 # --- 5. Steganography: extract a hidden message from an image ---
 @app.post("/api/decode")
-async def decode_image(image: UploadFile):
+async def decode_image(image: UploadFile, key: str = Form(None)):
 
     #Pull the LSB out of every channel
     raw = await image.read()
@@ -200,14 +229,30 @@ async def decode_image(image: UploadFile):
 
     #Rebuild characters 8 bits at a time, watching for the delimiter
     chars = []
-    message = ""
+    extracted = ""
     for i in range(0, len(bits) - 7, 8):
         byte = bits[i:i + 8]
         chars.append(chr(int(byte, 2)))
-        message = "".join(chars)
-        if message.endswith(STEG_DELIMITER):
-            return {"message": message[: -len(STEG_DELIMITER)]}
-        
+        extracted = "".join(chars)
+        if extracted.endswith(STEG_DELIMITER):
+            payload_text = extracted[: -len(STEG_DELIMITER)]
+
+            #If a passphrase was supplied, treat the payload as a Fernet
+            #token and decrypt it; wrong/missing key -> clear error instead
+            #of returning garbled ciphertext.
+            if key:
+                try:
+                    fernet = Fernet(_derive_fernet_key(key))
+                    plain = fernet.decrypt(payload_text.encode("ascii")).decode("utf-8")
+                    return {"message": plain}
+                except (InvalidToken, ValueError):
+                    raise HTTPException(
+                        status_code=400,
+                        detail="Could not decrypt -- wrong key, or this image wasn't encrypted.",
+                    )
+
+            return {"message": payload_text}
+
     #Fallback if the delimiter never shows up
     return {"message": None, "note": "No hidden message found in this image."}
 

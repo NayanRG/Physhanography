@@ -61,6 +61,8 @@
           <input type="file" id="encodeImageInput" class="file-input" accept="image/*" />
           <label class="field-label" for="secretMessage">Secret message</label>
           <input type="text" id="secretMessage" class="text-input" placeholder="Type the message to hide…" autocomplete="off" />
+          <label class="field-label" for="encodeKey">Passphrase (optional — AES-encrypts before hiding)</label>
+          <input type="password" id="encodeKey" class="text-input" placeholder="Leave blank to hide as plain text" autocomplete="off" />
           <button class="btn" onclick="encodeImage()">
             <span>Hide Message</span>
           </button>
@@ -79,6 +81,8 @@
         <div class="panel__body">
           <label class="field-label" for="imageInput">Encoded image</label>
           <input type="file" id="imageInput" class="file-input" accept="image/*" />
+          <label class="field-label" for="decodeKey">Passphrase (only if it was hidden with one)</label>
+          <input type="password" id="decodeKey" class="text-input" placeholder="Leave blank if not encrypted" autocomplete="off" />
           <button class="btn" onclick="decodeImage()">
             <span>Decode Image</span>
           </button>

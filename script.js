@@ -73,6 +73,9 @@ async function checkPhishing() {
   }
   resultEl.innerText = "Submitting...";
 
+const formData = new FormData();
+formData.append("url", url);
+const response = await fetch(`${API_BASE}/api/phishing`, { method: "POST", body: formData });
 
   try {
     const response = await fetch(`${API_BASE}/api/phishing`, {
@@ -111,6 +114,7 @@ async function scanFile() {
 
 async function decodeImage() {
   const file = document.getElementById("imageInput").files[0];
+  const key = document.getElementById("decodeKey").value;
   const resultEl = document.getElementById("decodeResult");
   if (!file) {
     resultEl.innerText = "Please choose an image.";
@@ -120,6 +124,7 @@ async function decodeImage() {
 
   const formData = new FormData();
   formData.append("image", file);
+  if (key) formData.append("key", key);
 
   try {
     const response = await fetch(`${API_BASE}/api/decode`, { method: "POST", body: formData });
@@ -134,6 +139,7 @@ async function decodeImage() {
 async function encodeImage() {
   const file = document.getElementById("encodeImageInput").files[0];
   const message = document.getElementById("secretMessage").value;
+  const key = document.getElementById("encodeKey").value;
   const resultEl = document.getElementById("encodeResult");
   if (!file || !message) {
     resultEl.innerText = "Please choose an image and enter a message.";
@@ -144,6 +150,7 @@ async function encodeImage() {
   const formData = new FormData();
   formData.append("image", file);
   formData.append("message", message);
+  if (key) formData.append("key", key);
 
   try {
     const response = await fetch(`${API_BASE}/api/encode`, { method: "POST", body: formData });
