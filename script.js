@@ -41,7 +41,7 @@ async function checkBackendStatus() {
 document.addEventListener("DOMContentLoaded", checkBackendStatus);
 
 // Poll VirusTotal analysis until it's done (or we give up)
-async function pollAnalysis(analysisId, resultEl, { attempts = 20, delayMs = 3000 } = {}) {
+async function pollAnalysis(analysisId, resultEl, { attempts = 10, delayMs = 3000 } = {}) {
   for (let i = 0; i < attempts; i++) {
     const res = await fetch(`${API_BASE}/api/analysis/${analysisId}`);
     const data = await safeJson(res);
@@ -58,7 +58,7 @@ async function pollAnalysis(analysisId, resultEl, { attempts = 20, delayMs = 300
         `harmless: ${s.harmless ?? 0}, undetected: ${s.undetected ?? 0}`;
       return;
     }
-    resultEl.innerText = `Scanning... (status: ${data.status || "queued"}, ${i + 1}/${attempts})`;
+    resultEl.innerText = `Scanning... (status: ${data.status || "queued"})`;
     await new Promise((r) => setTimeout(r, delayMs));
   }
   resultEl.innerText = "Scan is taking longer than expected. Check back later.";
