@@ -58,7 +58,7 @@ async function pollAnalysis(analysisId, resultEl, { attempts = 20, delayMs = 300
         `harmless: ${s.harmless ?? 0}, undetected: ${s.undetected ?? 0}`;
       return;
     }
-    resultEl.innerText = `Scanning... (status: ${data.status || "queued"})`;
+    resultEl.innerText = `Scanning... (status: ${data.status || "queued"}, ${i + 1}/${attempts})`;
     await new Promise((r) => setTimeout(r, delayMs));
   }
   resultEl.innerText = "Scan is taking longer than expected. Check back later.";
